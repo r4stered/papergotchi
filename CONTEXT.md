@@ -50,6 +50,11 @@ _Avoid_: Shape, body, outline
 
 ### Time and life
 
+**Egg**:
+What the device holds before a pet exists — on first boot, and again after a **Memorial**.
+It is not a pet: nothing decays, nothing calls, and no care event is possible.
+_Avoid_: Egg state, pre-hatch, seed, unhatched pet
+
 **Hatch instant**:
 The exact moment the pet emerged. All ages are measured from it, which keeps age immune
 to timezone and DST.
@@ -192,6 +197,17 @@ The state after the pet dies. No decay, no calls, no care events, held at zero p
 only thing a session offers is a new egg.
 _Avoid_: Death screen, graveyard, game over, epitaph
 
+**Enrolment**:
+Giving the device a network. Always deliberate, always inside a session, and never a gate on
+the pet — it is the owner's business, not the pet's. Defined in ADR-0012.
+_Avoid_: Provisioning, onboarding, pairing, setup, WiFi setup
+
+**Enrolment portal**:
+The temporary network the device raises during enrolment, and the form it serves. Its own
+credentials are carried by a QR code on the panel, so the player types nothing to reach it —
+and the passphrase they came to enter is typed on their phone.
+_Avoid_: SoftAP, captive portal, hotspot, AP mode
+
 **Lamp**:
 The depicted room light the player raises and dims. It renders a dark room; it is not
 device hardware.
@@ -266,6 +282,12 @@ What the shell actually asked the RTC for, which is never earlier than the wake 
 may be a hop short of it. The shell's number, not core's: it is what distinguishes a timed
 wake from a pickup.
 _Avoid_: Alarm, countdown, timer, next wake
+
+**Join hint**:
+The opaque string the shell hands core so the player's phone can reach the **enrolment
+portal**. Core draws it as a QR code and never interprets it, which is how core owns an
+enrolment screen without naming a port. Defined in ADR-0012.
+_Avoid_: SSID, QR payload, provisioning token, connection string
 
 **Port**:
 A concept describing one piece of hardware. Nine exist, and core never calls one.

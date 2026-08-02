@@ -151,9 +151,16 @@ noise.**
   contribution fails silently** — wrong integration *and* a missed wake, with no crash. This is the
   real price of the model. It is a single total function, so it is exhaustively testable, and the
   **replay log** and the simulator are what will catch an omission.
-- **#19's founding premise is reversed.** That ticket is written on *"the game is fully playable with
-  no network, so provisioning must never be a gate on play"*; requiring the network at first setup
-  makes provisioning **hatch-blocking**. See the handoff on #19.
+- **~~#19's founding premise is reversed.~~** *Amended by
+  [ADR-0012](0012-the-keyboard-belongs-to-the-phone.md).* This ADR concluded that requiring the
+  network at first setup makes provisioning **hatch-blocking**, against #19's premise that *"the game
+  is fully playable with no network, so provisioning must never be a gate on play"*. #19 settled it
+  the other way: **what blocks hatching is a confirmed civil clock, not a network**, and manual entry
+  is a *peer door* rather than a fallback — so the premise survives almost intact. Everything else
+  here stands, including that civil time comes from the network when the player takes that door.
+  ADR-0012 also closes a hole this one left: the plausibility floor is defined as *"nothing earlier
+  than the hatch's own civil time"*, which does not exist at **first** enrolment, where the floor is
+  the firmware build timestamp instead.
 
 The numbers here — the 4–10 h quiet-hours clamp, the 22:00–07:00 default, the 15-minute offset
 rounding — are starting values for the simulator to tune. Following the precedent of ADR-0008 and
