@@ -141,9 +141,30 @@ The mode where the pet is visible and idle, refreshes are rare, and the hearts a
 _Avoid_: Idle mode, standby, home screen
 
 **Session**:
-The mode entered by attending the device, where the hearts are visible and the full
-refresh budget is available.
+The mode entered by touching the device within an attention window, where the hearts are
+visible and the full refresh budget is available.
 _Avoid_: Active mode, awake, interactive mode
+
+**Attention window**:
+The bounded span during which the device is touch-responsive. Opened by a pickup, a buzz,
+or the end of a session. Outside it the panel is unpowered and touch does nothing.
+_Avoid_: Awake window, touch window, warm period, listening mode
+
+**Pickup**:
+Motion that re-energises a powered-off board through the power latch. A cold boot rather
+than an interrupt, and it cannot be disarmed. It opens an attention window, not a session.
+_Avoid_: Lift, wake-on-motion, shake, nudge
+
+**Torpor**:
+The state the device enters when charge runs out — a final snapshot, then power off,
+holding a fixed tableau. The pet is not dead: unpowered time accrues neglect but cannot
+kill. Only a charger ends it.
+_Avoid_: Flat, dead battery, shutdown, hibernation
+
+**Memorial**:
+The state after the pet dies. No decay, no calls, no care events, held at zero power. The
+only thing a session offers is a new egg.
+_Avoid_: Death screen, graveyard, game over, epitaph
 
 **Lamp**:
 The depicted room light the player raises and dims. It renders a dark room; it is not
@@ -202,6 +223,11 @@ An intent core returns for the shell to carry out — repaint a region, buzz, pe
 wake at an instant. Fire-and-forget; its outcome arrives later as an event.
 _Avoid_: Action, side effect, command, output
 
+**Wake deadline**:
+The instant core asks to be woken next — the earliest moment at which something visible
+changes or an alert is due. The only thing core says about time passing.
+_Avoid_: Tick interval, wake cadence, timer, poll rate
+
 **Port**:
 A concept describing one piece of hardware. Nine exist, and core never calls one.
 _Avoid_: Interface, driver, HAL, service
@@ -215,6 +241,11 @@ _Avoid_: Implementation, backend, provider
 The only impure code in the tree. Holds adapters, pumps events into core, executes the
 effects that come out. One per app, concrete and small.
 _Avoid_: Runtime, main loop, host, driver
+
+**Rest state**:
+How the shell idles between wakes — the board de-energised, or light sleep. Chosen from
+the wake deadline, and never named by core.
+_Avoid_: Deep sleep, standby, idle, sleep (which is the pet's)
 
 **Replay log**:
 A recorded sequence of events which, with the pet's seed, reproduces a life exactly. The
