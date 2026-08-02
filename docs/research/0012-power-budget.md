@@ -1562,6 +1562,23 @@ Three cheap checks to fold in while the probe is attached:
   **wake deadline** always works and is the primary route; reading the PCF8563-compatible timer flag
   would be more direct, and M5Unified already clears it, but nothing establishes that it survives the
   rails dropping. Arm a countdown, let it fire, and read the flag on the far side of the cold boot.
+- **How short is the BM8563 countdown's first tick?** The PCF8563 decrements on a free-running source
+  clock, so arming *N* units against the 1/60 Hz source should expire up to a full minute early —
+  and [ADR-0011](../adr/0011-two-clocks-and-the-life-clock-cannot-step.md) needs the answer, because
+  a countdown that fires *early* is misread as a **pickup** by the wake-reason inference above. That
+  ADR arms `ceil(delta/unit) + 1` to absorb it; this measurement says whether one spare unit is
+  enough. Arm the same short delay a few dozen times against both clock sources and histogram the
+  actual expiry against the RTC's own seconds.
+- **Does the BM8563 expose a clock-integrity (`VL`) flag, and is it set after a cell has gone flat?**
+  ADR-0011 treats a lost clock as *zero elapsed* and detects it by plausibility (`rtc_now <
+  last_seen`), which needs no hardware knowledge; the PCF8563-family `VL` bit in the seconds register
+  would be a direct signal and is worth having as an optimisation, on the same primary/optimisation
+  footing as the timer flag above. Drain a cell past protection, recharge, and read it.
+- **What is the BM8563's actual timekeeping accuracy?** ADR-0011 concludes that drift is a non-issue
+  and that there is **no scheduled NTP**, on a ±20 ppm crystal assumption giving ~24 s over a full
+  14-day life **[D]/[U]**. That is derived from PCF8563-family knowledge, not read off the BM8563
+  datasheet, and it is a small enough term that only an order-of-magnitude error would change the
+  decision. Compare against NTP across a week of board-off ambient.
 - **Is there an ambient light sensor on this board?** No part in the schematic BOM or the product
   documentation suggests one, and note 0009 established the same austerity for temperature.
   [ADR-0010](../adr/0010-alerts-escalate-animation-de-escalates.md) leans on its absence: quiet hours

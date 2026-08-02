@@ -55,9 +55,22 @@ The exact moment the pet emerged. All ages are measured from it, which keeps age
 to timezone and DST.
 _Avoid_: Birthday, birth date, start time
 
+**Life clock**:
+The monotonic instant the simulation runs on. It cannot step: every accepted clock
+correction is absorbed by an offset, so an NTP fix, a DST shift or a user edit is invisible
+to the pet. The only clock that can age it. Defined in ADR-0011.
+_Avoid_: Game clock, elapsed time, uptime, monotonic time
+
+**Civil clock**:
+Local wall-clock time — what a clock in the room says. Correctable, steppable, and read only
+by quiet hours, the morning wake and the care log. A wrong one costs a badly-timed night and
+nothing else. Defined in ADR-0011.
+_Avoid_: Wall clock, local time, real time, UTC
+
 **Year**:
 Twenty-four hours of wall-clock time from the hatch instant, whether the device was on,
-asleep or flat. The unit the pet's age is counted in.
+asleep or flat. The unit the pet's age is counted in. Derived on demand rather than marked:
+nothing happens at the boundary, because age-driven events land at the morning wake.
 _Avoid_: Day, cycle, tick
 
 **Lifespan band**:
@@ -76,9 +89,21 @@ cannot start it.
 _Avoid_: Tired, bedtime, night mode
 
 **Sleep**:
-The pet's rest state, entered when a sleepy pet has its lamp dimmed. Meters still drain,
-but slowly.
+The pet's rest state, entered when a sleepy pet has its lamp dimmed and left at the morning
+wake. Meters still drain, but slowly.
 _Avoid_: Night, dormant, idle
+
+**Quiet hours**:
+The player's declared night. Mandatory, 4–10 hours, and absolute: they suppress the buzzer
+and the idle animation, they anchor the morning wake, and they pause the rescue window.
+The one setting the player gives that three mechanics depend on.
+_Avoid_: Do not disturb, night mode, silent hours, bedtime
+
+**Morning wake**:
+The pet leaving sleep at the end of quiet hours. Surfaces the calls that quiet hours
+suppressed overnight, carries any evolution, and spends one of the four clearing refreshes.
+A late bedtime therefore makes a short night, not a late morning.
+_Avoid_: Wake-up, sunrise, dawn, alarm
 
 ### Care and its record
 
@@ -131,7 +156,8 @@ _Avoid_: History, journal, feed, activity log
 
 **Rescue window**:
 The signposted period during which a visibly dying pet can still be saved. Death is never
-sudden.
+sudden, and it never happens overnight: the window pauses through quiet hours, so a dying
+pet found in the morning is always still savable.
 _Avoid_: Grace period, last chance
 
 ### The device
@@ -223,10 +249,23 @@ An intent core returns for the shell to carry out — repaint a region, buzz, pe
 wake at an instant. Fire-and-forget; its outcome arrives later as an event.
 _Avoid_: Action, side effect, command, output
 
+**Regime boundary**:
+An instant at which the rate or the rules change — a quiet-hours edge, the morning wake,
+sleep onset, a stage transition, a call threshold, death. Core crosses a gap by integrating
+in closed form between them rather than by ticking. Defined in ADR-0011.
+_Avoid_: Tick, step boundary, event time, checkpoint
+
 **Wake deadline**:
 The instant core asks to be woken next — the earliest moment at which something visible
-changes or an alert is due. The only thing core says about time passing.
+changes or an alert is due, and always a life clock instant. The only thing core says about
+time passing.
 _Avoid_: Tick interval, wake cadence, timer, poll rate
+
+**Armed instant**:
+What the shell actually asked the RTC for, which is never earlier than the wake deadline and
+may be a hop short of it. The shell's number, not core's: it is what distinguishes a timed
+wake from a pickup.
+_Avoid_: Alarm, countdown, timer, next wake
 
 **Port**:
 A concept describing one piece of hardware. Nine exist, and core never calls one.
