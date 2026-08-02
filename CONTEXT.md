@@ -159,3 +159,48 @@ _Avoid_: UI, frame, border, HUD
 Which of the four games the player favours, accumulated over a stage. An input to
 evolution alongside care quality.
 _Avoid_: Preference, playstyle, game history
+
+### The architecture
+
+Engineering vocabulary rather than game vocabulary, kept here so the project has one
+ubiquitous language rather than two. Defined in ADR-0004 and ADR-0006.
+
+**Core**:
+The pure simulation library. Owns pet state, evolution, game rules, the save format, the
+ambient/session machine and every pixel. Names no port, allocates nothing, and depends on
+nothing.
+_Avoid_: Engine, domain layer, business logic, model
+
+**Step**:
+One pure transition — `(State, Event, Instant)` in, `(State, Effects)` out. Total,
+deterministic, and evaluable at compile time.
+_Avoid_: Tick, update, advance, frame
+
+**Event**:
+Anything entering core: a touch, a timer firing, a completed save, an NTP sync, a battery
+warning, a failed write. The single input channel.
+_Avoid_: Message, signal, command, input
+
+**Effect**:
+An intent core returns for the shell to carry out — repaint a region, buzz, persist,
+wake at an instant. Fire-and-forget; its outcome arrives later as an event.
+_Avoid_: Action, side effect, command, output
+
+**Port**:
+A concept describing one piece of hardware. Nine exist, and core never calls one.
+_Avoid_: Interface, driver, HAL, service
+
+**Adapter**:
+One concrete implementation of a port — real hardware for the device, simulated for the
+simulator. Deliberately dumb: logic worth testing belongs in core.
+_Avoid_: Implementation, backend, provider
+
+**Shell**:
+The only impure code in the tree. Holds adapters, pumps events into core, executes the
+effects that come out. One per app, concrete and small.
+_Avoid_: Runtime, main loop, host, driver
+
+**Replay log**:
+A recorded sequence of events which, with the pet's seed, reproduces a life exactly. The
+basis of fast-forward, bug reproduction and balance testing.
+_Avoid_: Trace, event stream, recording, history
