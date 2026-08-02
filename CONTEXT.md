@@ -155,6 +155,22 @@ The greyscale surround — dithered greys, hairline rules, serif type — that f
 pet's region and carries the care log.
 _Avoid_: UI, frame, border, HUD
 
+**Refresh intent**:
+What a repaint is *for* — one of four: animate the pet, flip a discrete element, settle
+the chrome, or clear the panel. Core names an intent; only the port knows which waveform
+it becomes. Defined in ADR-0008.
+_Avoid_: Refresh mode, waveform, update mode, epd mode
+
+**Clearing refresh**:
+The full greyscale pass that discharges accumulated ghosting. It flashes, so it is spent
+at a moment that already justifies a visual break — never on a timer.
+_Avoid_: Full refresh, flush, deghost, reset
+
+**Rest frame**:
+The pose an animation returns to. Returning to it closes the loop that keeps the pet's
+region electrically balanced, so a run that ends on its rest frame owes nothing.
+_Avoid_: Idle frame, base pose, neutral, default sprite
+
 **Play style**:
 Which of the four games the player favours, accumulated over a stage. An input to
 evolution alongside care quality.
