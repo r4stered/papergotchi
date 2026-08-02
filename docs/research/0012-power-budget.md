@@ -1,8 +1,17 @@
 # Power budget: does this game slate hit one week per charge?
 
 Research for [issue #12](https://github.com/r4stered/papergotchi/issues/12). Depends on #9 (refresh
-strategy, closed) and #11 (the ambient/session state machine, **still open**). Gates the battery
-target in the map, and prices the levers for #11, #13 (idle animation) and #10 (the 5 fps spike).
+strategy, closed) and #11 (the ambient/session state machine, closed). Gates the battery target in
+the map, and prices the levers for #11, #13 (idle animation) and #10 (the 5 fps spike).
+
+> **#11 has since chosen, and the parametric model can be collapsed** (ADR-0009, ADR-0010).
+> Board-off rest state; **one ~1 s animation run every 3 minutes** while awake and unattended, none
+> during quiet hours or **Sleep**; a 90 s session timeout with light sleep between touches; bounded
+> **attention windows** rather than permanently touch-armed ambient. Against §7.4's named
+> configurations that sits between B and C, at roughly **22 days at nominal** — and §9.1.2's
+> suggestion to escalate the wake cadence during a call was **declined**: the animation
+> *de-escalates* instead, so a pet left calling is now cheaper than a content one rather than
+> dearer. The failure shape this note warned about is closed by construction.
 
 **Nothing here was measured on the board.** As with note 0009, no hardware was attached. What this
 note delivers is the cost *model*, built from the ESP32-S3 datasheet, M5Stack's own published
@@ -1547,6 +1556,18 @@ Three cheap checks to fold in while the probe is attached:
   intact.** `IMU_VDD` comes from an always-on LDO with no enable pin (§3.3), so it should — which is
   what makes §4.2's "skip the 8 KB blob upload" optimisation safe. Read `INTERNAL_STATUS` and
   `SC_OUT_*` before and after a `timerSleep()` cycle.
+- **Does the BM8563's countdown timer flag survive the PMS150G power cycle?**
+  [ADR-0009](../adr/0009-pickup-listens-touch-attends.md) needs the device to tell a **pickup** from
+  a timed wake, since both arrive as the same power-on reset. Comparing now against the persisted
+  **wake deadline** always works and is the primary route; reading the PCF8563-compatible timer flag
+  would be more direct, and M5Unified already clears it, but nothing establishes that it survives the
+  rails dropping. Arm a countdown, let it fire, and read the flag on the far side of the cold boot.
+- **Is there an ambient light sensor on this board?** No part in the schematic BOM or the product
+  documentation suggests one, and note 0009 established the same austerity for temperature.
+  [ADR-0010](../adr/0010-alerts-escalate-animation-de-escalates.md) leans on its absence: quiet hours
+  suppress the idle animation on the argument that e-ink emits no light, so a pet moving in a dark
+  room is unobserved and the device cannot know better. If a sensor does exist, that becomes a
+  cheaper and more accurate trigger than the clock.
 
 ---
 
