@@ -8,7 +8,9 @@ runs on e-ink, in real time, over a roughly two-week lifespan ending in permadea
 ### The pet and its state
 
 **Pet**:
-The single living creature the device simulates. Exactly one exists at a time.
+The single living creature the device runs. Exactly one exists at a time. Not "the creature the
+device simulates" — **Simulator** is a different thing in this project, and the collision is worth
+avoiding.
 _Avoid_: Character, creature, avatar, tamagotchi
 
 **Hunger**:
@@ -186,6 +188,13 @@ Motion that re-energises a powered-off board through the power latch. A cold boo
 than an interrupt, and it cannot be disarmed. It opens an attention window, not a session.
 _Avoid_: Lift, wake-on-motion, shake, nudge
 
+**Latch input**:
+An action that re-energises the board without any firmware reading it — a **pickup**, or the side
+button. Both reach the power latch and neither reaches a GPIO, so the device learns only that it
+booted and infers the rest. Not a port, and the reason there is no `Button` port. Defined in
+ADR-0013.
+_Avoid_: Button press, wake source, power event, hardware input
+
 **Torpor**:
 The state the device enters when charge runs out — a final snapshot, then power off,
 holding a fixed tableau. The pet is not dead: unpowered time accrues neglect but cannot
@@ -228,6 +237,13 @@ _Avoid_: Refresh mode, waveform, update mode, epd mode
 The full greyscale pass that discharges accumulated ghosting. It flashes, so it is spent
 at a moment that already justifies a visual break — never on a timer.
 _Avoid_: Full refresh, flush, deghost, reset
+
+**Ghosting budget**:
+How much driven area a region may accumulate before a **clearing refresh** is owed. Denominated in
+area rather than in update count, because ghosting is a per-pixel property and a small window would
+otherwise be over-charged by the ratio of screen to window. The one piece of panel physics both
+builds share. Defined in ADR-0008 and ADR-0013.
+_Avoid_: Refresh counter, update budget, ghost score, deghost timer
 
 **Rest frame**:
 The pose an animation returns to. Returning to it closes the loop that keeps the pet's
@@ -290,12 +306,15 @@ enrolment screen without naming a port. Defined in ADR-0012.
 _Avoid_: SSID, QR payload, provisioning token, connection string
 
 **Port**:
-A concept describing one piece of hardware. Nine exist, and core never calls one.
+A concept describing one piece of hardware the firmware can actually reach. Eight exist, and core
+never calls one. A **latch input** is not among them.
 _Avoid_: Interface, driver, HAL, service
 
 **Adapter**:
 One concrete implementation of a port — real hardware for the device, simulated for the
-simulator. Deliberately dumb: logic worth testing belongs in core.
+simulator. Dumb by default: logic worth testing belongs in core. The display port is the single
+exception, because panel physics is neither core's business nor platform-specific — its shared rules
+live in `ports/` and both adapters use them. Defined in ADR-0013.
 _Avoid_: Implementation, backend, provider
 
 **Shell**:
@@ -312,3 +331,22 @@ _Avoid_: Deep sleep, standby, idle, sleep (which is the pet's)
 A recorded sequence of events which, with the pet's seed, reproduces a life exactly. The
 basis of fast-forward, bug reproduction and balance testing.
 _Avoid_: Trace, event stream, recording, history
+
+**Simulator**:
+The desktop program that runs the identical core on a simulated panel, so a two-week life can be
+lived in seconds. Not a second implementation of anything: it draws no pixels and holds no rules.
+Note the collision with **Pet** — the device does not "simulate" its pet, it runs it.
+_Avoid_: Emulator, sim mode, desktop build, preview
+
+**Panel model**:
+The simulator's account of the e-ink surface — a per-pixel waveform state machine and the optics
+that turn accumulated drive into a grey. It is where refresh latency, reduced contrast and ghosting
+all come from, and it is the only part of the simulator that is deliberately physical. Defined in
+ADR-0013.
+_Avoid_: Display sim, e-ink emulation, renderer, shader
+
+**Instrument view**:
+The simulator's diagnostic mode, showing state the panel never shows — real meter values, the
+hidden **care mistake** count, the **ghosting budget**. Off on every launch, because reading the
+numbers destroys the only question worth asking: whether the pet is legible without them.
+_Avoid_: Debug mode, HUD, overlay, dev tools

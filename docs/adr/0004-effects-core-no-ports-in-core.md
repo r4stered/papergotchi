@@ -36,10 +36,12 @@ the difference between balance being testable and being guesswork.
 
 ## Consequences
 
-- **Ports are concepts, checked locally.** Nine narrow ports — Display, Touch, Button, Imu,
-  Clock, Storage, Network, Power, Buzzer — each a concept, each mapping onto exactly one
-  open research ticket. Every adapter carries `static_assert(DisplayPort<M5PaperDisplay>)`
-  in its own TU, so a non-conforming adapter fails there with a readable message.
+- **Ports are concepts, checked locally.** ~~Nine~~ **Eight** narrow ports — Display, Touch,
+  ~~Button,~~ Imu, Clock, Storage, Network, Power, Buzzer — each a concept, each mapping onto
+  exactly one open research ticket. Every adapter carries
+  `static_assert(DisplayPort<M5PaperDisplay>)` in its own TU, so a non-conforming adapter fails
+  there with a readable message. *`Button` retired by
+  [ADR-0013](0013-simulate-the-panel-not-the-picture.md) — see below.*
 - **The shell is the only impure code.** Each app writes its own concrete, non-template
   shell (~200 lines) holding adapters by value. There are no templates and no vtables
   anywhere in `core/`.
@@ -54,4 +56,18 @@ the difference between balance being testable and being guesswork.
   arrives as an event (#18). Core never asks anything for the time.
 - **Logic migrates inward.** Because adapters are not unit-tested, anything worth testing
   belongs in core — the crash-safe save journal (#5) is core logic and the storage adapter
-  is reduced to "write these bytes".
+  is reduced to "write these bytes". *One exception was later carved out by
+  [ADR-0013](0013-simulate-the-panel-not-the-picture.md): the display port's physics — the ghosting
+  budget, per-region serialisation, white-frame bracketing, 4-pixel rounding — is identical on both
+  builds and cannot live in core, so it sits in `ports/` as a shared pure type rather than being
+  duplicated in two adapters.*
+- **~~Nine ports.~~ Eight — `Button` is retired.** *Amended by
+  [ADR-0013](0013-simulate-the-panel-not-the-picture.md).* This ADR's inventory predates note
+  [`0006`](../research/0006-input-inventory.md) being absorbed, which is unambiguous: "exactly one,
+  and the ESP32 cannot read it." `S1` pulls `SW_PWR` to pin `PA4` of the PMS150G power MCU, that net
+  reaches no ESP32-S3 GPIO, and M5Unified has no GPIO button read for this board at all. A port with
+  no possible device adapter is a concept nothing can ever satisfy. The side button is still real to
+  the player, so it is reclassified as a **latch input** alongside a **pickup** — an action that
+  re-energises the board without firmware reading it — and the shell infers what happened by
+  ADR-0011's `now` vs `armed_instant` comparison. Nothing else here changes: core still names no
+  port, dispatch is still static, and this is a fact catching up rather than a decision reversed.
